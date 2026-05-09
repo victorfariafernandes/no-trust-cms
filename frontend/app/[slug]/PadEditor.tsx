@@ -1,9 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { getPad, setPad } from "@/app/_lib/pads";
 
-type SaveState = "idle" | "saving" | "saved";
+type SaveState = "idle" | "saving" | "saved" | "rate-limited";
 
 export function PadEditor({ slug }: { slug: string }) {
   const [content, setContent] = useState("");
@@ -20,22 +21,33 @@ export function PadEditor({ slug }: { slug: string }) {
     clearTimeout(timerRef.current);
     timerRef.current = setTimeout(async () => {
       setSaveState("saving");
-      await setPad(slug, value);
-      setSaveState("saved");
+      try {
+        await setPad(slug, value);
+        setSaveState("saved");
+      } catch (err) {
+        if (err instanceof Error && err.message === "rate limit exceeded") {
+          setSaveState("rate-limited");
+        } else {
+          setSaveState("idle");
+        }
+      }
     }, 800);
   }
 
   return (
     <div className="flex flex-col flex-1 min-h-screen">
       <header className="flex items-center justify-between px-4 py-3 border-b border-black/10 dark:border-white/10">
-        <a href="/" className="text-sm font-semibold tracking-tight">
+        <Link href="/" className="text-sm font-semibold tracking-tight">
           dopad
-        </a>
+        </Link>
         <div className="flex items-center gap-3">
           <span className="font-mono text-sm text-zinc-500">/{slug}</span>
           <span className="text-xs text-zinc-400">
             {saveState === "saving" && "saving…"}
             {saveState === "saved" && "saved"}
+            {saveState === "rate-limited" && (
+              <span className="text-amber-500">slow down — rate limited</span>
+            )}
           </span>
         </div>
       </header>

@@ -33,11 +33,15 @@ Directory structure:
 ```
 app/
 ├── _components/
-│   └── login.tsx      # SIWE wallet login flow
+│   └── Login.tsx      # SIWE wallet login flow
 ├── _lib/
-│   └── api.ts         # apiFetch wrapper
+│   ├── api.ts         # apiFetch wrapper
+│   └── pads.ts        # getPad / setPad (calls GET+PUT /pads/{slug})
+├── [slug]/
+│   ├── page.tsx       # Pad page shell (server component)
+│   └── PadEditor.tsx  # Pad editor (client component, auto-save, 429 handling)
 ├── layout.tsx         # Root layout (Geist font, dark mode)
-├── page.tsx           # Home page
+├── page.tsx           # Home page (slug input → redirect)
 └── globals.css        # Tailwind theme + CSS variables
 ```
 
@@ -51,22 +55,27 @@ app/
 | Nonce TTL | 5 minutes |
 | JWT TTL | 24 hours |
 | CORS | Hardcoded to `http://localhost:3000` |
+| Rate limit | 10 writes/min per IP (token bucket, `middlewares/ratelimit.go`) |
 
 Directory structure (layered architecture):
 ```
 backend/
 ├── main.go                     # Wires layers: adapters → service → HTTP router
 ├── services/
-│   └── auth/
-│       ├── service.go          # Business logic: nonce gen, SIWE verify, JWT issue/validate
-│       └── ports.go            # NonceStore interface
+│   ├── auth/
+│   │   └── service.go          # Business logic: nonce gen, SIWE verify, JWT issue/validate
+│   └── pad/
+│       └── service.go          # Business logic: pad get/set, ErrNotFound sentinel
 ├── adapters/
 │   ├── http/
-│   │   └── auth.go             # Inward adapter: HTTP handlers, delegates to service
+│   │   ├── auth.go             # Inward adapter: auth HTTP handlers
+│   │   └── pad.go              # Inward adapter: GET+PUT /pads/{slug} handlers
 │   └── store/
-│       └── nonce.go            # Outward adapter: in-memory NonceStore + sweep goroutine
+│       ├── nonce.go            # Outward adapter: in-memory NonceStore + sweep goroutine
+│       └── pad.go              # Outward adapter: in-memory PadStore (RWMutex)
 └── middlewares/
-    └── cors.go                 # CORS middleware wrapper (plugged via Register)
+    ├── cors.go                 # CORS middleware wrapper (plugged via Register)
+    └── ratelimit.go            # Token-bucket per-IP rate limiter
 ```
 
 Layer responsibilities:

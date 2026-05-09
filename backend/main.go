@@ -12,6 +12,7 @@ import (
 	"no-trust-cms-backend/adapters/store"
 	"no-trust-cms-backend/middlewares"
 	authsvc "no-trust-cms-backend/services/auth"
+	padsvc "no-trust-cms-backend/services/pad"
 )
 
 func main() {
@@ -29,9 +30,15 @@ func main() {
 
 	svc := authsvc.New(nonceStore, []byte(secret), 5*time.Minute, 24*time.Hour)
 
-	handler := httpadapter.NewAuthHandler(svc)
+	padStore := store.NewMemoryPadStore()
+	padHandler := httpadapter.NewPadHandler(padsvc.New(padStore))
+
 	mux := http.NewServeMux()
-	handler.Register(mux, middlewares.CORS("http://localhost:3000"))
+	cors := middlewares.CORS("http://localhost:3000")
+	writeLimiter := middlewares.NewRateLimit(10)
+
+	httpadapter.NewAuthHandler(svc).Register(mux, cors)
+	padHandler.Register(mux, cors, writeLimiter)
 
 	log.Printf("listening on :8080")
 	log.Fatal(http.ListenAndServe(":8080", mux))

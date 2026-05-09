@@ -12,7 +12,7 @@
 - HTTP handlers log errors with `log.Printf` before responding 500; never expose internal error strings in the response body
 
 ### HTTP handlers
-- Every handler must call `cors(w, r)` first and `return` if it returns `true` (preflight handled)
+- CORS is applied as a middleware wrapper in `Register()` — do not call it inside individual handlers
 - All JSON responses go through `writeJSON(w, statusCode, payload)` — no direct `json.NewEncoder` calls in handlers
 - Use `http.StatusXxx` constants — no raw integer status codes
 

@@ -18,6 +18,73 @@ This file is maintained by AI agents. Every time an agent makes any change to th
 
 ---
 
+## 2026-05-08 — Fix review-docs errors and warnings
+
+**Agent:** Claude Sonnet 4.6
+**Files changed:**
+- `backend/adapters/http/pad.go` (modified)
+- `backend/middlewares/ratelimit.go` (modified)
+- `frontend/app/[slug]/PadEditor.tsx` (modified)
+- `docs/architecture.md` (modified)
+- `docs/code-style.md` (modified)
+
+**What changed:**
+- `pad.go`: replaced `_ = h.svc.Set(...)` with proper error handling — logs and returns 500 on failure
+- `pad.go`: added missing `"log"` import
+- `ratelimit.go`: acknowledged `w.Write` return value with `_, _ =`
+- `PadEditor.tsx`: replaced `<a href="/">` with `<Link href="/">` from `next/link` (ESLint no-html-link-for-pages)
+- `architecture.md`: updated frontend tree (`Login.tsx`, added `pads.ts`, `[slug]/` route) and backend tree (added pad service/store/handler, rate limiter; removed deleted `ports.go`)
+- `code-style.md`: updated Go handler CORS rule to reflect middleware composition pattern instead of old `cors(w, r)` call-per-handler pattern
+
+**Why:** Fixes flagged by `/review-docs` — 2 errors and 4 warnings.
+
+---
+
+## 2026-05-08 — Wire frontend to backend + add Cypress E2E tests
+
+**Agent:** Claude Sonnet 4.6
+**Files changed:**
+- `frontend/app/_lib/pads.ts` (rewritten)
+- `frontend/app/[slug]/PadEditor.tsx` (modified)
+- `frontend/cypress.config.ts` (added)
+- `frontend/cypress/e2e/pad.cy.ts` (added)
+- `frontend/package.json` (cypress devDependency added)
+
+**What changed:**
+- Replaced `localStorage` mock in `pads.ts` with real `apiFetch` calls to `GET /pads/{slug}` and `PUT /pads/{slug}`; 404 returns empty string, 429 throws a typed error
+- Added `"rate-limited"` save state to `PadEditor`; catches 429 from `setPad` and shows amber "slow down — rate limited" message in header
+- Added `cypress.config.ts` pointing to `http://localhost:3000`
+- Added three-tab Cypress E2E flow: Tab 1 creates a pad via home page, Tab 2 reads it back in a fresh page load, Tab 3 edits it and verifies persistence
+
+**Why:** User requested frontend–backend integration and Cypress E2E orchestration for the create → read → edit pad flow.
+
+---
+
+## 2026-05-08 — Add pad GET/PUT routes with per-IP rate limiting
+
+**Agent:** Claude Sonnet 4.6
+**Files changed:**
+- `backend/adapters/store/pad.go` (added)
+- `backend/services/pad/service.go` (added)
+- `backend/adapters/http/pad.go` (added)
+- `backend/middlewares/ratelimit.go` (added)
+- `backend/middlewares/cors.go` (modified)
+- `backend/main.go` (modified)
+- `docs/api-spec.md` (modified)
+
+**What changed:**
+- Added `PadStore` interface + `MemoryPadStore` (RWMutex, interface-ready for Postgres swap)
+- Added `pad.Service` with `Get` (returns `ErrNotFound`) and `Set` methods
+- Added `PadHandler`: `GET /pads/{slug}` and `PUT /pads/{slug}`; CORS on all methods, rate limiter on PUT only
+- Added token-bucket per-IP rate limiter middleware (10 writes/min); reads `X-Forwarded-For` for proxied requests
+- Updated CORS allowed methods to include `PUT`
+- Wired pad layer into `main.go` alongside the existing auth handler
+- Added pad endpoints to `docs/api-spec.md`
+
+**Why:** User requested backend pad storage routes with a throttle strategy for writes, and api-spec update.
+
+---
+
 ## 2026-05-08 — Add home page slug input and pad edit page
 
 **Agent:** Claude Sonnet 4.6

@@ -95,3 +95,53 @@ Client-side logout. Server is stateless; the client must discard the JWT.
 ```json
 { "ok": "logged out" }
 ```
+
+---
+
+## Pad Endpoints
+
+### `GET /pads/{slug}`
+
+Returns the content of a pad by slug.
+
+**Response 200:**
+```json
+{ "slug": "my-page", "content": "hello world" }
+```
+
+**Response 400:**
+```json
+{ "error": "missing slug" }
+```
+
+**Response 404:**
+```json
+{ "error": "pad not found" }
+```
+
+---
+
+### `PUT /pads/{slug}`
+
+Creates or overwrites a pad. Rate-limited to **10 requests/minute per IP**.
+
+**Body:**
+```json
+{ "content": "hello world" }
+```
+
+**Response 200:**
+```json
+{ "slug": "my-page", "content": "hello world" }
+```
+
+**Response 400:**
+```json
+{ "error": "missing slug" }
+{ "error": "invalid body" }
+```
+
+**Response 429:**
+```json
+{ "error": "rate limit exceeded" }
+```
