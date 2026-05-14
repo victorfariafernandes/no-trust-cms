@@ -5,10 +5,10 @@ import (
 	"log"
 	"net/http"
 
-	httpadapter "no-trust-cms-backend/adapters/http"
-	"no-trust-cms-backend/adapters/store"
-	"no-trust-cms-backend/middlewares"
-	padsvc "no-trust-cms-backend/services/pad"
+	httpadapter "dopad-backend/adapters/http"
+	"dopad-backend/adapters/store"
+	"dopad-backend/middlewares"
+	padsvc "dopad-backend/services/pad"
 )
 
 func main() {

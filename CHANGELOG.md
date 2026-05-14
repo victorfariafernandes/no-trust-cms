@@ -18,6 +18,31 @@ This file is maintained by AI agents. Every time an agent makes any change to th
 
 ---
 
+## 2026-05-14 — Rename Go module from no-trust-cms-backend to dopad-backend
+
+**Agent:** claude-sonnet-4-6
+**Files changed:**
+- `backend/go.mod` — module declaration updated
+- `backend/main.go` — 4 import paths updated
+- `backend/adapters/http/pad.go` — 3 import paths updated
+- `backend/adapters/store/pad.go` — 1 import path updated
+- `backend/services/pad/service.go` — 1 import path updated
+
+**Why:** Project renamed from no-trust-cms to dopad; all Go import paths must match the module name in go.mod.
+
+---
+
+## 2026-05-14 — Replace method-picker tabs with shared DeriverSelect dropdown; fix layout shift
+
+**Agent:** claude-sonnet-4-6
+**Files changed:**
+- `frontend/app/[slug]/DeriverSelect.tsx` — new file; `DeriverSelect` component renders a `<select>` driven by `keyDerivers` registry
+- `frontend/app/[slug]/PadEditor.tsx` — replaced both inline tab-button blocks (lock screen + header encrypt form) with `<DeriverSelect>`; wrapped dynamic form content in a fixed-width `w-64` / `w-72` container to prevent layout shift when switching methods
+
+**Why:** The two-button pill tabs caused the picker to jump left/right when the user switched methods because the adjacent form (two inputs vs one button) had different widths. A `<select>` dropdown with a fixed-width slot for the form content keeps the picker pinned. Extracting a shared component eliminates duplication between the lock screen and the header encrypt form.
+
+---
+
 ## 2026-05-14 — Store deriver_id on pads; auto-select unlock method on locked pad screen
 
 **Agent:** claude-sonnet-4-6

@@ -15,6 +15,7 @@ import {
 } from "@/app/_lib/crypto";
 import type { DeriverId } from "@/app/_lib/crypto";
 import { getPad, setPad } from "@/app/_lib/pads";
+import { DeriverSelect } from "./DeriverSelect";
 
 type SaveState = "idle" | "saving" | "saved" | "rate-limited";
 type PadState = "loading" | "locked" | "unlocked";
@@ -223,68 +224,54 @@ export function PadEditor({ slug }: { slug: string }) {
             <span className="text-xs text-zinc-400">Choose a method to unlock it</span>
           </div>
 
-          {/* Method picker tabs */}
-          <div className="flex gap-1 p-1 bg-black/5 dark:bg-white/5 rounded">
-            {keyDerivers.map((d) => (
-              <button
-                key={d.id}
-                type="button"
-                onClick={() => {
-                  setSelectedMethod(d.id as DeriverId);
-                  setUnlockError("");
-                }}
-                className={`px-3 py-1 text-xs rounded transition-colors ${
-                  selectedMethod === d.id
-                    ? "bg-black dark:bg-white text-white dark:text-black font-medium"
-                    : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
-                }`}
+          <DeriverSelect
+            value={selectedMethod}
+            onChange={(id) => { setSelectedMethod(id); setUnlockError(""); }}
+          />
+
+          <div className="w-72 flex flex-col gap-2">
+            {selectedMethod === DERIVER_PASSWORD && (
+              <form
+                onSubmit={handlePasswordUnlock}
+                className="flex flex-col gap-2"
               >
-                {d.label}
-              </button>
-            ))}
+                <input
+                  type="password"
+                  autoFocus
+                  value={unlockPassword}
+                  onChange={(e) => setUnlockPassword(e.target.value)}
+                  placeholder="Password"
+                  className="border border-black/20 dark:border-white/20 rounded px-3 py-2 text-sm bg-transparent outline-none focus:border-black dark:focus:border-white"
+                />
+                {unlockError && (
+                  <span className="text-xs text-red-500">{unlockError}</span>
+                )}
+                <button
+                  type="submit"
+                  disabled={unlocking}
+                  className="px-3 py-2 text-sm font-medium bg-black dark:bg-white text-white dark:text-black rounded disabled:opacity-50"
+                >
+                  {unlocking ? "Unlocking…" : "Unlock"}
+                </button>
+              </form>
+            )}
+
+            {selectedMethod === DERIVER_SIWE && (
+              <div className="flex flex-col gap-2">
+                {unlockError && (
+                  <span className="text-xs text-red-500 text-center">{unlockError}</span>
+                )}
+                <button
+                  type="button"
+                  disabled={unlocking}
+                  onClick={handleSIWEUnlock}
+                  className="px-3 py-2 text-sm font-medium bg-black dark:bg-white text-white dark:text-black rounded disabled:opacity-50"
+                >
+                  {unlocking ? "Connecting…" : "Connect Wallet & Unlock"}
+                </button>
+              </div>
+            )}
           </div>
-
-          {selectedMethod === DERIVER_PASSWORD && (
-            <form
-              onSubmit={handlePasswordUnlock}
-              className="flex flex-col gap-2 w-full max-w-xs"
-            >
-              <input
-                type="password"
-                autoFocus
-                value={unlockPassword}
-                onChange={(e) => setUnlockPassword(e.target.value)}
-                placeholder="Password"
-                className="border border-black/20 dark:border-white/20 rounded px-3 py-2 text-sm bg-transparent outline-none focus:border-black dark:focus:border-white"
-              />
-              {unlockError && (
-                <span className="text-xs text-red-500">{unlockError}</span>
-              )}
-              <button
-                type="submit"
-                disabled={unlocking}
-                className="px-3 py-2 text-sm font-medium bg-black dark:bg-white text-white dark:text-black rounded disabled:opacity-50"
-              >
-                {unlocking ? "Unlocking…" : "Unlock"}
-              </button>
-            </form>
-          )}
-
-          {selectedMethod === DERIVER_SIWE && (
-            <div className="flex flex-col gap-2 w-full max-w-xs">
-              {unlockError && (
-                <span className="text-xs text-red-500 text-center">{unlockError}</span>
-              )}
-              <button
-                type="button"
-                disabled={unlocking}
-                onClick={handleSIWEUnlock}
-                className="px-3 py-2 text-sm font-medium bg-black dark:bg-white text-white dark:text-black rounded disabled:opacity-50"
-              >
-                {unlocking ? "Connecting…" : "Connect Wallet & Unlock"}
-              </button>
-            </div>
-          )}
         </div>
       </div>
     );
@@ -307,75 +294,61 @@ export function PadEditor({ slug }: { slug: string }) {
           </span>
           {showPasswordForm ? (
             <div className="flex items-center gap-2">
-              {/* Method picker tabs (inline) */}
-              <div className="flex gap-1 p-0.5 bg-black/5 dark:bg-white/5 rounded">
-                {keyDerivers.map((d) => (
-                  <button
-                    key={d.id}
-                    type="button"
-                    onClick={() => {
-                      setFormMethod(d.id as DeriverId);
-                      setFormError("");
-                    }}
-                    className={`px-2 py-0.5 text-xs rounded transition-colors ${
-                      formMethod === d.id
-                        ? "bg-black dark:bg-white text-white dark:text-black font-medium"
-                        : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
-                    }`}
+              <DeriverSelect
+                value={formMethod}
+                onChange={(id) => { setFormMethod(id); setFormError(""); }}
+              />
+
+              <div className="w-64 flex items-center gap-2">
+                {formMethod === DERIVER_PASSWORD && (
+                  <form
+                    onSubmit={handlePasswordFormSubmit}
+                    className="flex items-center gap-2 w-full"
                   >
-                    {d.label}
-                  </button>
-                ))}
+                    <input
+                      type="password"
+                      autoFocus
+                      value={formPassword}
+                      onChange={(e) => setFormPassword(e.target.value)}
+                      placeholder="New password"
+                      className="border border-black/20 dark:border-white/20 rounded px-2 py-1 text-xs bg-transparent outline-none focus:border-black dark:focus:border-white w-0 flex-1 min-w-0"
+                    />
+                    <input
+                      type="password"
+                      value={formConfirm}
+                      onChange={(e) => setFormConfirm(e.target.value)}
+                      placeholder="Confirm"
+                      className="border border-black/20 dark:border-white/20 rounded px-2 py-1 text-xs bg-transparent outline-none focus:border-black dark:focus:border-white w-20 flex-none"
+                    />
+                    {formError && (
+                      <span className="text-xs text-red-500">{formError}</span>
+                    )}
+                    <button
+                      type="submit"
+                      disabled={formSaving}
+                      className="px-2 py-1 text-xs font-medium bg-black dark:bg-white text-white dark:text-black rounded disabled:opacity-50 flex-none"
+                    >
+                      {formSaving ? "Saving…" : "Confirm"}
+                    </button>
+                  </form>
+                )}
+
+                {formMethod === DERIVER_SIWE && (
+                  <div className="flex items-center gap-2 w-full">
+                    {formError && (
+                      <span className="text-xs text-red-500">{formError}</span>
+                    )}
+                    <button
+                      type="button"
+                      disabled={formSaving}
+                      onClick={handleSIWEFormEncrypt}
+                      className="px-2 py-1 text-xs font-medium bg-black dark:bg-white text-white dark:text-black rounded disabled:opacity-50 w-full"
+                    >
+                      {formSaving ? "Signing…" : "Sign with Wallet"}
+                    </button>
+                  </div>
+                )}
               </div>
-
-              {formMethod === DERIVER_PASSWORD && (
-                <form
-                  onSubmit={handlePasswordFormSubmit}
-                  className="flex items-center gap-2"
-                >
-                  <input
-                    type="password"
-                    autoFocus
-                    value={formPassword}
-                    onChange={(e) => setFormPassword(e.target.value)}
-                    placeholder="New password"
-                    className="border border-black/20 dark:border-white/20 rounded px-2 py-1 text-xs bg-transparent outline-none focus:border-black dark:focus:border-white w-32"
-                  />
-                  <input
-                    type="password"
-                    value={formConfirm}
-                    onChange={(e) => setFormConfirm(e.target.value)}
-                    placeholder="Confirm"
-                    className="border border-black/20 dark:border-white/20 rounded px-2 py-1 text-xs bg-transparent outline-none focus:border-black dark:focus:border-white w-24"
-                  />
-                  {formError && (
-                    <span className="text-xs text-red-500">{formError}</span>
-                  )}
-                  <button
-                    type="submit"
-                    disabled={formSaving}
-                    className="px-2 py-1 text-xs font-medium bg-black dark:bg-white text-white dark:text-black rounded disabled:opacity-50"
-                  >
-                    {formSaving ? "Saving…" : "Confirm"}
-                  </button>
-                </form>
-              )}
-
-              {formMethod === DERIVER_SIWE && (
-                <div className="flex items-center gap-2">
-                  {formError && (
-                    <span className="text-xs text-red-500">{formError}</span>
-                  )}
-                  <button
-                    type="button"
-                    disabled={formSaving}
-                    onClick={handleSIWEFormEncrypt}
-                    className="px-2 py-1 text-xs font-medium bg-black dark:bg-white text-white dark:text-black rounded disabled:opacity-50"
-                  >
-                    {formSaving ? "Signing…" : "Sign with Wallet"}
-                  </button>
-                </div>
-              )}
 
               <button
                 type="button"

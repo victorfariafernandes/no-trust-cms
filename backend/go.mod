@@ -1,3 +1,3 @@
-module no-trust-cms-backend
+module dopad-backend
 
 go 1.21

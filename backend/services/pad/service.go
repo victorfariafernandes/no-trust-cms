@@ -3,7 +3,7 @@ package pad
 import (
 	"errors"
 
-	"no-trust-cms-backend/adapters/store"
+	"dopad-backend/adapters/store"
 )
 
 var ErrNotFound = errors.New("pad not found")

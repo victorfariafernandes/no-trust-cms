@@ -3,7 +3,7 @@ package store
 import (
 	"sync"
 
-	"no-trust-cms-backend/encryption"
+	"dopad-backend/encryption"
 )
 
 type Pad struct {

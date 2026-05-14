@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"strings"
 
-	"no-trust-cms-backend/adapters/store"
-	"no-trust-cms-backend/encryption"
-	padsvc "no-trust-cms-backend/services/pad"
+	"dopad-backend/adapters/store"
+	"dopad-backend/encryption"
+	padsvc "dopad-backend/services/pad"
 )
 
 func writeJSON(w http.ResponseWriter, status int, v any) {
