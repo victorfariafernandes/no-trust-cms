@@ -55,7 +55,6 @@ export function PadEditor({ slug }: { slug: string }) {
       if (pad.encrypted) {
         setContent(pad.content);
         setDeriverId(pad.deriverId);
-        // Auto-select the method that was used to encrypt this pad
         if (pad.deriverId && keyDerivers.some((d) => d.id === pad.deriverId)) {
           setSelectedMethod(pad.deriverId as DeriverId);
         }
@@ -231,10 +230,7 @@ export function PadEditor({ slug }: { slug: string }) {
 
           <div className="w-72 flex flex-col gap-2">
             {selectedMethod === DERIVER_PASSWORD && (
-              <form
-                onSubmit={handlePasswordUnlock}
-                className="flex flex-col gap-2"
-              >
+              <form onSubmit={handlePasswordUnlock} className="flex flex-col gap-2">
                 <input
                   type="password"
                   autoFocus

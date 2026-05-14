@@ -1,10 +1,9 @@
-import { PadEditor } from "./PadEditor";
+import { PadPageClient } from "./PadPageClient";
 
-export default async function PadPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  const { slug } = await params;
-  return <PadEditor slug={slug} />;
+export function generateStaticParams() {
+  return [{ slug: "_" }];
+}
+
+export default function Page() {
+  return <PadPageClient />;
 }

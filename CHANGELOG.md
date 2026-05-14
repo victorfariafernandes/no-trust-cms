@@ -18,6 +18,31 @@ This file is maintained by AI agents. Every time an agent makes any change to th
 
 ---
 
+## 2026-05-14 — Add GitHub Releases CI/CD pipeline with Docker image and static frontend bundle
+
+**Agent:** claude-sonnet-4-6
+**Files changed:**
+- `.github/workflows/release.yml` — added (GitHub Actions release workflow)
+- `backend/Dockerfile` — added (multi-stage Go build → distroless runtime)
+- `frontend/next.config.ts` — modified (added `output: "export"` for static export)
+- `frontend/app/[[...slug]]/page.tsx` — added (server component with `generateStaticParams`)
+- `frontend/app/[[...slug]]/PageContent.tsx` — added (client component: home + pad routing)
+- `frontend/app/[[...slug]]/PadEditor.tsx` — added (moved from `app/[slug]/PadEditor.tsx`)
+- `frontend/app/[[...slug]]/DeriverSelect.tsx` — added (moved from `app/[slug]/DeriverSelect.tsx`)
+- `frontend/app/[slug]/page.tsx` — deleted (replaced by catch-all route)
+- `frontend/app/[slug]/PadEditor.tsx` — deleted (moved to `[[...slug]]`)
+- `frontend/app/[slug]/DeriverSelect.tsx` — deleted (moved to `[[...slug]]`)
+
+**What changed:**
+- Added `.github/workflows/release.yml`: on tag push matching `v*.*.*`, builds a Docker image for the backend and pushes it to `ghcr.io/{owner}/dopad-backend:{tag}` + `:latest`; builds the frontend static export and attaches `frontend-{tag}.tar.gz` to the GitHub Release
+- Added `backend/Dockerfile`: two-stage build using `golang:1.21-alpine` builder and `gcr.io/distroless/static-debian12` runtime; binary compiled with `CGO_ENABLED=0 GOOS=linux` and `-ldflags="-w -s"` for a minimal, static binary
+- Enabled `output: "export"` in `next.config.ts` so `pnpm build` emits a deployable `out/` directory of static HTML/CSS/JS
+- Refactored routing from `app/page.tsx` + `app/[slug]/` to a single `app/[[...slug]]/` optional catch-all; `generateStaticParams` produces one template at `/_`; CDN serves `_.html` for all paths and client-side `useParams()` resolves the real slug at runtime
+
+**Why:** User requested a GitHub Releases integration to produce versioned artifacts: a Docker image for the Go backend and a compressed static bundle for the Next.js frontend, to be deployed later to a cloud environment.
+
+---
+
 ## 2026-05-14 — Rename Go module from no-trust-cms-backend to dopad-backend
 
 **Agent:** claude-sonnet-4-6
